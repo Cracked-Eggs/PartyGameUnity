@@ -5,9 +5,10 @@ using UnityEngine;
 public class Spawnpoints : MonoBehaviour
 {
     [SerializeField] Transform[] spawnpoints;
-    private int lastSpawnpoint = -1;
+    [SerializeField] int delay;
+    int lastSpawnpoint = -1;
 
-    private void Start()
+    void Start()
     {
         if (spawnpoints.Length > 0)
         {
@@ -15,7 +16,7 @@ public class Spawnpoints : MonoBehaviour
         }
     }
 
-    private IEnumerator MoveSpawnpoints()
+    IEnumerator MoveSpawnpoints()
     {
         while (true)
         {
@@ -27,7 +28,7 @@ public class Spawnpoints : MonoBehaviour
             while (random == lastSpawnpoint);
             transform.position = spawnpoints[random].position;
             lastSpawnpoint = random;
-            yield return new WaitForSeconds(3f);
+            yield return new WaitForSeconds(delay);
         }
     }
 }
