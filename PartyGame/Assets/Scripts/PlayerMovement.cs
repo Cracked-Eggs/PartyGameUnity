@@ -5,29 +5,51 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
 
-    [Header("Movement")]
+    [Header("Movement and Speed Settings")]
     public float walkSpeed = 8f;
+
     public float sprintSpeed = 14f;
     public float maxVelocityChange = 10f;
 
-    [Header("Jump")] [Range(0,1f)]
-    public float airControl = 0.5f;
+    [Header("Air & Jumping Controls")] [Range(0,1f)]public float airControl = 0.5f;
     public float jumpForce = 10f;
     public float fallMultiplier = 2.5f;
     public float lowJumpMultiplier = 2f;
-    public float groundCheckDistance = 0.75f;
+    [Space] public float groundCheckDistance = 0.75f;
 
-    Vector2 input;
-    Rigidbody rb;
-    bool sprinting;
-    bool jumping;
-    bool grounded;
-    Vector3 lastTargetVelocity;
-   
-    void Start() => rb = GetComponent<Rigidbody>();
+    #region Private Variables
 
-    void Update()
+    private Vector2 input;
+
+    private Rigidbody rb;
+
+    private bool sprinting;
+    private bool jumping;
+
+    private bool grounded;
+
+    private Vector3 lastTargetVelocity;
+
+    #endregion
+
+
+    private void Start()
     {
+        rb = GetComponent<Rigidbody>();
+    }
+
+    private void Update()
+    {
+        if (InputManager.LockInput)
+        {
+            input = new Vector2(0, 0);
+            sprinting = false;
+            jumping = false;
+            
+            return;
+        }
+        
+        //Gather input
         input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
         input.Normalize();
 
@@ -36,30 +58,40 @@ public class PlayerMovement : MonoBehaviour
     }
 
 
-    void OnCollisionStay(Collision other)
+    private void OnCollisionStay(Collision other)
     {
         grounded = true;
     }
 
-    void FixedUpdate()
+    private void FixedUpdate()
     {
-        grounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance);
         if (grounded)
         {
+            // Jump, have full movement etc
             if (jumping)
+            {
                 rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            }
             else
+            {
                 ApplyMovement(sprinting ? sprintSpeed : walkSpeed, false);
+            }
         }
         else
         {
+            // Fall to the ground, and have limited air control
+
             if (input.magnitude > 0.5f)
+            {
+                // Air control
                 ApplyMovement(sprinting ? sprintSpeed : walkSpeed, true);
+            }
         }
+
         grounded = false;
     }
 
-    void ApplyMovement(float _speed, bool _inAir)
+    private void ApplyMovement(float _speed, bool _inAir)
     {
         Vector3 targetVelocity = new Vector3(input.x, 0, input.y);
         targetVelocity = transform.TransformDirection(targetVelocity) * _speed;
