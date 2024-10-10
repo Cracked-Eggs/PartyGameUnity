@@ -4,15 +4,13 @@ using UnityEngine;
 
 public class Spawnpoints : MonoBehaviour
 {
-    [SerializeField] Transform[] spawnpoints;  // Waypoints to move between
-    public float moveSpeed = 5f;   // Speed of movement
-    private int lastSpawnpoint = -1;  // Tracks last waypoint
+    [SerializeField] Transform[] spawnpoints;
+    private int lastSpawnpoint = -1;
 
     private void Start()
     {
         if (spawnpoints.Length > 0)
         {
-            // Start the movement coroutine
             StartCoroutine(MoveSpawnpoints());
         }
     }
