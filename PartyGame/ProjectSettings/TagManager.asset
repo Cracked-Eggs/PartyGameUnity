@@ -3,15 +3,23 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Ground
+  - Head
+  - Torso
+  - R_Leg
+  - L_Leg
+  - R_Arm
+  - L_Arm
+  - Parent
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Player
   - Water
   - UI
-  - 
+  - Detachables
   - 
   - 
   - 
