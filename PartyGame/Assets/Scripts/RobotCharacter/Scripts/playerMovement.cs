@@ -38,6 +38,7 @@ public class playerMovement : MonoBehaviour
     private Vector3 rotationSmoothVelocity;
     private float yRot = 0f; // Added
     private float xRot = 0f; // Added
+    public float ogJumpForce;
 
 
     private bool customGravityActive = true;
@@ -49,6 +50,8 @@ public class playerMovement : MonoBehaviour
 
     public bool _isL_ArmDetached = false;
     public bool _isR_ArmDetached = false;
+    public bool _isL_LegDetached = false;
+    public bool _isR_LegDetached = false;
 
 
     private Dictionary<GameObject, Vector3> originalPositions = new Dictionary<GameObject, Vector3>();
@@ -93,7 +96,7 @@ public class playerMovement : MonoBehaviour
         r_Arm = GameObject.FindGameObjectWithTag("R_Arm");
         l_Arm = GameObject.FindGameObjectWithTag("L_Arm");
         parent = GameObject.FindGameObjectWithTag("Parent");
-
+        ogJumpForce = _jumpForce;
 
         StoreOriginalTransforms(head);
         StoreOriginalTransforms(torso);
@@ -246,6 +249,9 @@ public class playerMovement : MonoBehaviour
             isDetached = false;
             _rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
             playerCollider.enabled = false;
+            _isR_LegDetached = false;
+            _isL_LegDetached = false;
+            _jumpForce = ogJumpForce;
 
         }
     }
@@ -351,11 +357,13 @@ public class playerMovement : MonoBehaviour
     private void DetachRightLeg(InputAction.CallbackContext context)
     {
         DetachPart(r_Leg);
+        _isR_LegDetached = true;
     }
 
     private void DetachLeftLeg(InputAction.CallbackContext context)
     {
         DetachPart(l_Leg);
+        _isL_LegDetached = true;
     }
 
     private void DetachRightArm(InputAction.CallbackContext context)
@@ -434,33 +442,45 @@ public class playerMovement : MonoBehaviour
     }
     private IEnumerator ShakeAndReattach(GameObject part)
     {
-        part.transform.SetParent(parent.transform);
-        Destroy(part.GetComponent<Rigidbody>());
-        Vector3 originalPosition = originalPositions[part];
-        Quaternion originalRotation = originalRotations[part];
-        Vector3 shakeOffset = new Vector3(0.1f, 0, 0);
-        float shakeDuration = 0.3f;
-        float shakeFrequency = 10f;
-
-        // Shaking effect
-        for (float t = 0; t < shakeDuration; t += Time.deltaTime)
+        // Disable Rigidbody so the part is fully controlled
+        Rigidbody partRb = part.GetComponent<Rigidbody>();
+        if (partRb != null)
         {
-            float x = Mathf.Sin(t * shakeFrequency) * shakeOffset.x;
-            part.transform.localPosition = originalPosition + new Vector3(x, 0, 0);
-            yield return null;
+            Destroy(partRb); // Remove the rigidbody for smoother control
         }
 
-        // Directly set back to original position and rotation after shaking
+        // Set parent back to the player but continue to move towards original position
+        part.transform.SetParent(parent.transform);
+
+        Vector3 originalPosition = originalPositions[part];
+        Quaternion originalRotation = originalRotations[part];
+        Vector3 shakeOffset = new Vector3(0.1f, 0, 0);  // Optional shake effect for magnetism
+        float reattachSpeed = 5f;  // Speed at which the part moves towards original position
+        float rotationSpeed = 5f;  // Speed for smooth rotation reattachment
+        float reattachDistanceThreshold = 0.1f; // Distance threshold to consider "reattached"
+
+        while (Vector3.Distance(part.transform.localPosition, originalPosition) > reattachDistanceThreshold)
+        {
+            // Move the part towards the original position smoothly
+            part.transform.localPosition = Vector3.Lerp(part.transform.localPosition, originalPosition, reattachSpeed * Time.deltaTime);
+
+            // Smoothly rotate the part towards its original rotation
+            part.transform.localRotation = Quaternion.Slerp(part.transform.localRotation, originalRotation, rotationSpeed * Time.deltaTime);
+
+            yield return null;  // Wait for the next frame
+        }
+
+        // Once it's close enough, snap to exact position/rotation to avoid tiny floating
         part.transform.localPosition = originalPosition;
         part.transform.localRotation = originalRotation;
-
-       
     }
 
-   
+
 
     private void Update()
     {
+
+        
         if (_moveAction != null)
         {
             Vector2 movementInput = _moveAction.ReadValue<Vector2>();
@@ -496,6 +516,20 @@ public class playerMovement : MonoBehaviour
                     Quaternion horizontalRotation = Quaternion.LookRotation(movement);
                     transform.rotation = Quaternion.Slerp(transform.rotation, horizontalRotation, Time.deltaTime * _rotationSpeed);
                 }
+            }
+
+            if(_isR_LegDetached && !_isL_LegDetached || !_isR_LegDetached && _isL_LegDetached)
+            {
+
+                _jumpForce = 110f;
+                Jump();
+
+            }
+
+            if(_isL_LegDetached && _isR_LegDetached)
+            {
+
+                _jumpForce = ogJumpForce;
             }
         }
 

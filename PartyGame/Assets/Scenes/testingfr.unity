@@ -1288,6 +1288,7 @@ MonoBehaviour:
   rotationSmoothSpeed: 0.1
   _rotationSpeed: 5
   rotationThreshold: 0.65
+  ogJumpForce: 0
   head: {fileID: 0}
   torso: {fileID: 0}
   r_Leg: {fileID: 0}
@@ -1298,6 +1299,8 @@ MonoBehaviour:
   isDetached: 0
   _isL_ArmDetached: 0
   _isR_ArmDetached: 0
+  _isL_LegDetached: 0
+  _isR_LegDetached: 0
 --- !u!137 &1360831856877776486
 SkinnedMeshRenderer:
   m_ObjectHideFlags: 0
@@ -2737,9 +2740,9 @@ CapsuleCollider:
   m_Enabled: 0
   serializedVersion: 2
   m_Radius: 2.26
-  m_Height: 17.65
+  m_Height: 7.69
   m_Direction: 1
-  m_Center: {x: 0, y: 5.5, z: 0}
+  m_Center: {x: 0, y: -2.12, z: 0}
 --- !u!1 &7368257475981386639
 GameObject:
   m_ObjectHideFlags: 0
