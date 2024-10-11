@@ -9,29 +9,12 @@ public class playerMovement : MonoBehaviour
     private GroundCheck gc;
     private InputSystem_Actions inputSystem;
 
-    private InputAction _moveAction;
-    private InputAction _lookAction;
-    private InputAction _jumpAction;
-
     private Rigidbody _rb;
     private Collider playerCollider;
 
     public bool canRetach;
 
-    [SerializeField] public float _speed;
-    [SerializeField] public float _jumpForce;
     [SerializeField] public float customGravity = -9.81f;
-    [SerializeField] public float maxFallSpeed = -20f;
-    [SerializeField] public bool _isGrounded = false;
-    [SerializeField] private Transform cameraTransform; 
-    [SerializeField] private float sensitivityX = 10f; 
-    [SerializeField] private float sensitivityY = 10f;  
-    [SerializeField] private float minYAngle = -60f;  
-    [SerializeField] private float maxYAngle = 60f;    
-    [SerializeField] private float cameraDistance = 5f; 
-    [SerializeField] private float rotationSmoothSpeed = 0.1f;
-    [SerializeField] public float _rotationSpeed = 5f;
-    [SerializeField] public float rotationThreshold = 1f;
 
     private Vector2 lookInput;                          
     private Vector3 currentRotation;                   
@@ -96,7 +79,6 @@ public class playerMovement : MonoBehaviour
         r_Arm = GameObject.FindGameObjectWithTag("R_Arm");
         l_Arm = GameObject.FindGameObjectWithTag("L_Arm");
         parent = GameObject.FindGameObjectWithTag("Parent");
-        ogJumpForce = _jumpForce;
 
         StoreOriginalTransforms(head);
         StoreOriginalTransforms(torso);
@@ -124,13 +106,6 @@ public class playerMovement : MonoBehaviour
 
     private void OnEnable()
     {
-        _moveAction = inputSystem.Player.Move;
-        _moveAction.Enable();
-        _lookAction = inputSystem.Player.Look;
-        _lookAction.Enable();
-        _jumpAction = inputSystem.Player.Jump;
-        _jumpAction.performed += OnJump;
-        _jumpAction.Enable();
 
         inputSystem.Player.DetachHead.performed += DetachHead;
 
@@ -162,9 +137,6 @@ public class playerMovement : MonoBehaviour
 
     private void OnDisable()
     {
-        _moveAction.Disable();
-        _lookAction.Disable();
-        _jumpAction.Disable();
         inputSystem.Player.Detach.Disable();
         inputSystem.Player.Reattach.Disable();
         inputSystem.Player.DetachHead.Disable();
@@ -176,40 +148,6 @@ public class playerMovement : MonoBehaviour
         inputSystem.Player.ReattachLeftArm.Disable();
         inputSystem.Player.ReattachRightArm.Disable();
  
-    }
-
-    private void OnJump(InputAction.CallbackContext context)
-    {
-        Jump();
-    }
-   
-
-    private void LookAround()
-    {
-        
-        Vector2 lookInput = _lookAction.ReadValue<Vector2>();
-        float mouseX = lookInput.x * sensitivityX * Time.deltaTime; 
-        float mouseY = lookInput.y * sensitivityY * Time.deltaTime;
-
-        
-        yRot += mouseX;
-        xRot -= mouseY;
-        xRot = Mathf.Clamp(xRot, minYAngle, maxYAngle); 
-        
-        cameraTransform.localRotation = Quaternion.Euler(xRot, yRot, 0f);
-    }
-
-
-
-    private void Jump()
-    {
-        Debug.Log("jumping");
-        if (_isGrounded)
-        {
-            Vector3 jumpForce = Vector3.up * _jumpForce;
-            _rb.AddForce(jumpForce);
-            SetGrounded(false);
-        }
     }
 
     private void OnDetach(InputAction.CallbackContext context)
@@ -249,7 +187,6 @@ public class playerMovement : MonoBehaviour
             playerCollider.enabled = false;
             _isR_LegDetached = false;
             _isL_LegDetached = false;
-            _jumpForce = ogJumpForce;
 
         }
     }
@@ -433,10 +370,6 @@ public class playerMovement : MonoBehaviour
 
 
 
-    public void SetGrounded(bool grounded)
-    {
-        _isGrounded = grounded;
-    }
     private IEnumerator ShakeAndReattach(GameObject part)
     {
         
@@ -471,85 +404,4 @@ public class playerMovement : MonoBehaviour
         part.transform.localPosition = originalPosition;
         part.transform.localRotation = originalRotation;
     }
-
-
-
-    private void Update()
-    {
-
-        
-        if (_moveAction != null)
-        {
-            Vector2 movementInput = _moveAction.ReadValue<Vector2>();
-
-            
-            Vector3 forward = transform.forward; 
-            Vector3 right = transform.right;
-
-            
-            Vector3 movement = (forward * movementInput.y + right * movementInput.x).normalized * _speed;
-
-            
-            Vector3 targetVelocity = new Vector3(movement.x, _rb.velocity.y, movement.z); 
-            _rb.velocity = Vector3.Lerp(_rb.velocity, targetVelocity, 0.1f);
-
-            
-
-           
-            if (movement.magnitude > 0.1f) 
-            {
-                
-                Quaternion targetRotation = Quaternion.LookRotation(movement);
-
-                
-                if (Mathf.Abs(movementInput.y) > rotationThreshold)
-                {
-                    
-                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * _rotationSpeed);
-                }
-                else if (Mathf.Abs(movementInput.x) > rotationThreshold)
-                {
-                    
-                    Quaternion horizontalRotation = Quaternion.LookRotation(movement);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, horizontalRotation, Time.deltaTime * _rotationSpeed);
-                }
-            }
-
-            if(_isR_LegDetached && !_isL_LegDetached || !_isR_LegDetached && _isL_LegDetached)
-            {
-
-                _jumpForce = 110f;
-                Jump();
-
-            }
-
-            if(_isL_LegDetached && _isR_LegDetached)
-            {
-
-                _jumpForce = ogJumpForce;
-            }
-        }
-
-
-
-
-
-
-        //LookAround();
-
-        if (customGravityActive)
-        {
-            if (_rb.velocity.y > maxFallSpeed)
-            {
-                _rb.AddForce(Vector3.up * customGravity, ForceMode.Acceleration);
-            }
-        }
-        else
-        {
-            _rb.AddForce(Vector3.up * customGravity, ForceMode.Acceleration);
-        }
-
-        
-    }
-
 }

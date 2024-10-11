@@ -63,7 +63,7 @@
                     "name": "Previous",
                     "type": "Button",
                     "id": "2776c80d-3c14-4091-8c56-d04ced07a2b0",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -72,7 +72,7 @@
                     "name": "Next",
                     "type": "Button",
                     "id": "b7230bb6-fc9b-4f52-8b25-f5e19cb2c2ba",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -180,6 +180,15 @@
                     "name": "ReattachLeftArm",
                     "type": "Button",
                     "id": "a0c49395-c096-450c-a170-60444be12495",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "LeaderboardToggle",
+                    "type": "Button",
+                    "id": "0ea0f84f-601a-4d85-bb8e-3009f56807b8",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -585,11 +594,33 @@
                 },
                 {
                     "name": "",
+                    "id": "57c8fc15-6dbf-4a32-8f8d-9affcde4d2c7",
+                    "path": "<Gamepad>/buttonWest",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "Reattach",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "68982053-b3c8-4dda-bad6-d3785f86ff78",
                     "path": "<Keyboard>/o",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
+                    "action": "DetachHead",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f8b4e380-e0b7-480a-aac0-cbbb6f6189b2",
+                    "path": "<Gamepad>/dpad/down",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
                     "action": "DetachHead",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -607,6 +638,17 @@
                 },
                 {
                     "name": "",
+                    "id": "676452ab-1822-4186-af80-7abf7cedd0af",
+                    "path": "<Gamepad>/dpad/up",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "DetachTorso",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "157fbf3a-31d6-4b1f-8977-c71e04c28b3c",
                     "path": "<Keyboard>/leftBracket",
                     "interactions": "",
@@ -618,8 +660,30 @@
                 },
                 {
                     "name": "",
+                    "id": "1670a162-369e-46c5-bda9-5cfddf97eac8",
+                    "path": "<Gamepad>/dpad/right",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "DetachRightLeg",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "3082c9e2-707d-4762-8fb9-1f09a6bcf052",
                     "path": "<Keyboard>/rightBracket",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "DetachLeftLeg",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e8cce96d-399a-46b7-ab15-8f558cd2ed05",
+                    "path": "<Gamepad>/dpad/left",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -690,6 +754,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "ReattachLeftArm",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f34ee24f-0703-4ad7-bdfa-a63dbd98fe0f",
+                    "path": "<Gamepad>/start",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "LeaderboardToggle",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

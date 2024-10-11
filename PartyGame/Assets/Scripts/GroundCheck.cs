@@ -11,7 +11,6 @@ public class GroundCheck : MonoBehaviour
         // Check if the player is touching ground
         if (other.CompareTag("Ground")) // Ensure only ground tagged objects set grounded
         {
-            _pm.SetGrounded(true);
         }
     }
 
@@ -20,7 +19,6 @@ public class GroundCheck : MonoBehaviour
         // Check if the player is leaving the ground
         if (other.CompareTag("Ground")) // Ensure only ground tagged objects unset grounded
         {
-            _pm.SetGrounded(false);
         }
     }
 
@@ -29,7 +27,6 @@ public class GroundCheck : MonoBehaviour
         // Keep the grounded state true as long as we stay on the ground
         if (other.CompareTag("Ground")) // Ensure only ground tagged objects keep grounded
         {
-            _pm.SetGrounded(true);
         }
     }
 }

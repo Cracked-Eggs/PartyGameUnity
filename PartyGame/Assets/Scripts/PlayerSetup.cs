@@ -9,10 +9,12 @@ public class PlayerSetup : MonoBehaviour
     public PlayerMovement movement;
     public GameObject camera;
     public TextMeshPro nicknameText;
+    public playerMovement player;
 
     public void IsLocalPlayer()
     {
         movement.enabled = true;
+        player.enabled = true;
         camera.SetActive(true);
     }
 

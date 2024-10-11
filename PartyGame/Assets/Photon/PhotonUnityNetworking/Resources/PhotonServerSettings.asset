@@ -40,6 +40,13 @@ MonoBehaviour:
   - Fire
   - RespawnSpaceship
   - SetNickname
+  - TakeDamage
+  - DetachParts
+  - ReattachParts
+  - DetachPartRPC
+  - ReattachPartRPC
+  - RPC_DetachPart
+  - RPC_ReattachPart
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

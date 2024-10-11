@@ -85,7 +85,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""name"": ""Previous"",
                     ""type"": ""Button"",
                     ""id"": ""2776c80d-3c14-4091-8c56-d04ced07a2b0"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -94,7 +94,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""name"": ""Next"",
                     ""type"": ""Button"",
                     ""id"": ""b7230bb6-fc9b-4f52-8b25-f5e19cb2c2ba"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -202,6 +202,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""name"": ""ReattachLeftArm"",
                     ""type"": ""Button"",
                     ""id"": ""a0c49395-c096-450c-a170-60444be12495"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""LeaderboardToggle"",
+                    ""type"": ""Button"",
+                    ""id"": ""0ea0f84f-601a-4d85-bb8e-3009f56807b8"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -607,11 +616,33 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""57c8fc15-6dbf-4a32-8f8d-9affcde4d2c7"",
+                    ""path"": ""<Gamepad>/buttonWest"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""Reattach"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""68982053-b3c8-4dda-bad6-d3785f86ff78"",
                     ""path"": ""<Keyboard>/o"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
+                    ""action"": ""DetachHead"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f8b4e380-e0b7-480a-aac0-cbbb6f6189b2"",
+                    ""path"": ""<Gamepad>/dpad/down"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
                     ""action"": ""DetachHead"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -629,6 +660,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""676452ab-1822-4186-af80-7abf7cedd0af"",
+                    ""path"": ""<Gamepad>/dpad/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""DetachTorso"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""157fbf3a-31d6-4b1f-8977-c71e04c28b3c"",
                     ""path"": ""<Keyboard>/leftBracket"",
                     ""interactions"": """",
@@ -640,8 +682,30 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""1670a162-369e-46c5-bda9-5cfddf97eac8"",
+                    ""path"": ""<Gamepad>/dpad/right"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DetachRightLeg"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""3082c9e2-707d-4762-8fb9-1f09a6bcf052"",
                     ""path"": ""<Keyboard>/rightBracket"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DetachLeftLeg"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e8cce96d-399a-46b7-ab15-8f558cd2ed05"",
+                    ""path"": ""<Gamepad>/dpad/left"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -712,6 +776,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""ReattachLeftArm"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f34ee24f-0703-4ad7-bdfa-a63dbd98fe0f"",
+                    ""path"": ""<Gamepad>/start"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""LeaderboardToggle"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1319,6 +1394,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_ShootLeftArm = m_Player.FindAction("ShootLeftArm", throwIfNotFound: true);
         m_Player_ReattachRightArm = m_Player.FindAction("ReattachRightArm", throwIfNotFound: true);
         m_Player_ReattachLeftArm = m_Player.FindAction("ReattachLeftArm", throwIfNotFound: true);
+        m_Player_LeaderboardToggle = m_Player.FindAction("LeaderboardToggle", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1418,6 +1494,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_ShootLeftArm;
     private readonly InputAction m_Player_ReattachRightArm;
     private readonly InputAction m_Player_ReattachLeftArm;
+    private readonly InputAction m_Player_LeaderboardToggle;
     public struct PlayerActions
     {
         private @InputSystem_Actions m_Wrapper;
@@ -1442,6 +1519,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         public InputAction @ShootLeftArm => m_Wrapper.m_Player_ShootLeftArm;
         public InputAction @ReattachRightArm => m_Wrapper.m_Player_ReattachRightArm;
         public InputAction @ReattachLeftArm => m_Wrapper.m_Player_ReattachLeftArm;
+        public InputAction @LeaderboardToggle => m_Wrapper.m_Player_LeaderboardToggle;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1511,6 +1589,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @ReattachLeftArm.started += instance.OnReattachLeftArm;
             @ReattachLeftArm.performed += instance.OnReattachLeftArm;
             @ReattachLeftArm.canceled += instance.OnReattachLeftArm;
+            @LeaderboardToggle.started += instance.OnLeaderboardToggle;
+            @LeaderboardToggle.performed += instance.OnLeaderboardToggle;
+            @LeaderboardToggle.canceled += instance.OnLeaderboardToggle;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -1575,6 +1656,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @ReattachLeftArm.started -= instance.OnReattachLeftArm;
             @ReattachLeftArm.performed -= instance.OnReattachLeftArm;
             @ReattachLeftArm.canceled -= instance.OnReattachLeftArm;
+            @LeaderboardToggle.started -= instance.OnLeaderboardToggle;
+            @LeaderboardToggle.performed -= instance.OnLeaderboardToggle;
+            @LeaderboardToggle.canceled -= instance.OnLeaderboardToggle;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -1777,6 +1861,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         void OnShootLeftArm(InputAction.CallbackContext context);
         void OnReattachRightArm(InputAction.CallbackContext context);
         void OnReattachLeftArm(InputAction.CallbackContext context);
+        void OnLeaderboardToggle(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {

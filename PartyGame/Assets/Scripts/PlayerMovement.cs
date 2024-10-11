@@ -1,37 +1,55 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-
     [Header("Movement and Speed Settings")]
     public float walkSpeed = 8f;
-
     public float sprintSpeed = 14f;
     public float maxVelocityChange = 10f;
 
-    [Header("Air & Jumping Controls")] [Range(0,1f)]public float airControl = 0.5f;
+    [Header("Air & Jumping Controls")] 
+    [Range(0,1f)] public float airControl = 0.5f;
     public float jumpForce = 10f;
     public float fallMultiplier = 2.5f;
     public float lowJumpMultiplier = 2f;
     [Space] public float groundCheckDistance = 0.75f;
 
     #region Private Variables
-
     private Vector2 input;
-
     private Rigidbody rb;
-
+    private InputAction _jumpAction;  // Jump action from Input System
+    private InputSystem_Actions inputSystem;
     private bool sprinting;
     private bool jumping;
-
     private bool grounded;
-
     private Vector3 lastTargetVelocity;
-
     #endregion
 
+    void Awake()
+    {
+        inputSystem = new InputSystem_Actions();  // Initialize input system actions
+    }
+
+    void OnEnable()
+    {
+        _jumpAction = inputSystem.Player.Jump;  // Bind Jump action
+        _jumpAction.performed += OnJumpPerformed;  // Subscribe to jump event
+        _jumpAction.Enable();
+    }
+
+    void OnDisable()
+    {
+        _jumpAction.Disable();
+    }
+
+    // Handle jump input when the jump action is performed
+    private void OnJumpPerformed(InputAction.CallbackContext context)
+    {
+        jumping = true;  // Set the jumping flag to true when the "A" button is pressed
+    }
 
     private void Start()
     {
@@ -45,18 +63,16 @@ public class PlayerMovement : MonoBehaviour
             input = new Vector2(0, 0);
             sprinting = false;
             jumping = false;
-            
             return;
         }
         
-        //Gather input
+        // Gather input for movement
         input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
         input.Normalize();
 
+        // Detect sprinting (controller or keyboard left shift)
         sprinting = Input.GetKey(KeyCode.LeftShift);
-        jumping = Input.GetKey(KeyCode.Space);
     }
-
 
     private void OnCollisionStay(Collision other)
     {
@@ -67,10 +83,11 @@ public class PlayerMovement : MonoBehaviour
     {
         if (grounded)
         {
-            // Jump, have full movement etc
+            // If grounded, apply movement and check for jump
             if (jumping)
             {
                 rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+                jumping = false;  // Reset the jump flag after applying force
             }
             else
             {
@@ -79,16 +96,14 @@ public class PlayerMovement : MonoBehaviour
         }
         else
         {
-            // Fall to the ground, and have limited air control
-
+            // If in the air, apply limited movement
             if (input.magnitude > 0.5f)
             {
-                // Air control
                 ApplyMovement(sprinting ? sprintSpeed : walkSpeed, true);
             }
         }
 
-        grounded = false;
+        grounded = false;  // Reset grounded state for the next frame
     }
 
     private void ApplyMovement(float _speed, bool _inAir)
@@ -110,14 +125,11 @@ public class PlayerMovement : MonoBehaviour
         }
         else
         {
-            velocityChange.x = Mathf.Clamp(velocityChange.x, -maxVelocityChange,
-                maxVelocityChange);
-            velocityChange.z = Mathf.Clamp(velocityChange.z, -maxVelocityChange,
-                maxVelocityChange);
+            velocityChange.x = Mathf.Clamp(velocityChange.x, -maxVelocityChange, maxVelocityChange);
+            velocityChange.z = Mathf.Clamp(velocityChange.z, -maxVelocityChange, maxVelocityChange);
         }
 
         velocityChange.y = 0;
-        
         rb.AddForce(velocityChange, ForceMode.VelocityChange);
     }
 }
