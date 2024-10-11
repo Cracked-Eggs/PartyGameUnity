@@ -9,7 +9,7 @@ public class PlayerSetup : MonoBehaviour
     public PlayerMovement movement;
     public GameObject camera;
     public TextMeshPro nicknameText;
-    public playerMovement player;
+    public Attach player;
 
     public void IsLocalPlayer()
     {

@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class GroundCheck : MonoBehaviour
 {
-    public playerMovement _pm; // Reference to the playerMovement script
 
     private void OnTriggerEnter(Collider other)
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class playerMovement : MonoBehaviour
+public class Attach : MonoBehaviour
 {
     private GroundCheck gc;
     private InputSystem_Actions inputSystem;
