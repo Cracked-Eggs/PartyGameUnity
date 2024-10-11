@@ -36,8 +36,8 @@ public class playerMovement : MonoBehaviour
     private Vector2 lookInput;                          
     private Vector3 currentRotation;                   
     private Vector3 rotationSmoothVelocity;
-    private float yRot = 0f; // Added
-    private float xRot = 0f; // Added
+    private float yRot = 0f; 
+    private float xRot = 0f; 
     public float ogJumpForce;
 
 
@@ -186,18 +186,16 @@ public class playerMovement : MonoBehaviour
 
     private void LookAround()
     {
-        // This method can be simplified or modified based on your needs.
-        // If you still want to control camera movement, you can adjust it here
+        
         Vector2 lookInput = _lookAction.ReadValue<Vector2>();
-        float mouseX = lookInput.x * sensitivityX * Time.deltaTime;  // Use Time.deltaTime for smooth movement
+        float mouseX = lookInput.x * sensitivityX * Time.deltaTime; 
         float mouseY = lookInput.y * sensitivityY * Time.deltaTime;
 
-        // Adjust the camera rotation based on mouse input
-        yRot += mouseX; // Horizontal rotation
-        xRot -= mouseY; // Vertical rotation
-        xRot = Mathf.Clamp(xRot, minYAngle, maxYAngle); // Clamp vertical rotation
-
-        // Apply rotation to the camera
+        
+        yRot += mouseX;
+        xRot -= mouseY;
+        xRot = Mathf.Clamp(xRot, minYAngle, maxYAngle); 
+        
         cameraTransform.localRotation = Quaternion.Euler(xRot, yRot, 0f);
     }
 
@@ -303,14 +301,13 @@ public class playerMovement : MonoBehaviour
     {
         if (part == null) return;
 
-        // Clean up baked MeshRenderer and MeshFilter
+       
         MeshRenderer meshRenderer = part.GetComponent<MeshRenderer>();
         if (meshRenderer != null) Destroy(meshRenderer);
 
         MeshFilter meshFilter = part.GetComponent<MeshFilter>();
         if (meshFilter != null) Destroy(meshFilter);
 
-        // Restore SkinnedMeshRenderer
         SkinnedMeshRenderer skinnedMesh = part.AddComponent<SkinnedMeshRenderer>();
         skinnedMesh.bones = originalBones[part];
         skinnedMesh.rootBone = originalRootBones[part];
@@ -319,19 +316,19 @@ public class playerMovement : MonoBehaviour
         BoxCollider partCollider = part.GetComponent<BoxCollider>();
         if (partCollider != null)
         {
-            // Restore collider to its original size and center
+           
             ColliderData originalColliderData = originalCollidersData[part];
             partCollider.size = originalColliderData.size;
             partCollider.center = originalColliderData.center;
         }
 
-        // Reattach part to the parent without modifying scale
+        
         part.transform.SetParent(parent.transform);
         part.transform.localPosition = originalPositions[part];
         part.transform.localRotation = originalRotations[part];
         partsReattachedCount++;
 
-        // Handle completion of reattachment
+      
         if (partsReattachedCount >= totalParts)
         {
             if (playerCollider != null)
@@ -442,35 +439,35 @@ public class playerMovement : MonoBehaviour
     }
     private IEnumerator ShakeAndReattach(GameObject part)
     {
-        // Disable Rigidbody so the part is fully controlled
+        
         Rigidbody partRb = part.GetComponent<Rigidbody>();
         if (partRb != null)
         {
-            Destroy(partRb); // Remove the rigidbody for smoother control
+            Destroy(partRb); 
         }
 
-        // Set parent back to the player but continue to move towards original position
+       
         part.transform.SetParent(parent.transform);
 
         Vector3 originalPosition = originalPositions[part];
         Quaternion originalRotation = originalRotations[part];
-        Vector3 shakeOffset = new Vector3(0.1f, 0, 0);  // Optional shake effect for magnetism
-        float reattachSpeed = 5f;  // Speed at which the part moves towards original position
-        float rotationSpeed = 5f;  // Speed for smooth rotation reattachment
-        float reattachDistanceThreshold = 0.1f; // Distance threshold to consider "reattached"
+        Vector3 shakeOffset = new Vector3(0.1f, 0, 0);  
+        float reattachSpeed = 5f;  
+        float rotationSpeed = 5f;  
+        float reattachDistanceThreshold = 0.1f;
 
         while (Vector3.Distance(part.transform.localPosition, originalPosition) > reattachDistanceThreshold)
         {
-            // Move the part towards the original position smoothly
+           
             part.transform.localPosition = Vector3.Lerp(part.transform.localPosition, originalPosition, reattachSpeed * Time.deltaTime);
 
-            // Smoothly rotate the part towards its original rotation
+            
             part.transform.localRotation = Quaternion.Slerp(part.transform.localRotation, originalRotation, rotationSpeed * Time.deltaTime);
 
-            yield return null;  // Wait for the next frame
+            yield return null;  
         }
 
-        // Once it's close enough, snap to exact position/rotation to avoid tiny floating
+       
         part.transform.localPosition = originalPosition;
         part.transform.localRotation = originalRotation;
     }
@@ -485,34 +482,34 @@ public class playerMovement : MonoBehaviour
         {
             Vector2 movementInput = _moveAction.ReadValue<Vector2>();
 
-            // Convert movement input to a direction based on the player's current orientation
-            Vector3 forward = transform.forward; // Forward direction in world space
-            Vector3 right = transform.right;     // Right direction in world space
+            
+            Vector3 forward = transform.forward; 
+            Vector3 right = transform.right;
 
-            // Create movement vector based on input
+            
             Vector3 movement = (forward * movementInput.y + right * movementInput.x).normalized * _speed;
 
-            // Apply the desired velocity with some momentum
-            Vector3 targetVelocity = new Vector3(movement.x, _rb.velocity.y, movement.z); // Maintain vertical velocity
-            _rb.velocity = Vector3.Lerp(_rb.velocity, targetVelocity, 0.1f); // Smooth velocity application
+            
+            Vector3 targetVelocity = new Vector3(movement.x, _rb.velocity.y, movement.z); 
+            _rb.velocity = Vector3.Lerp(_rb.velocity, targetVelocity, 0.1f);
 
             
 
-            // Rotate the player to face the direction of movement
-            if (movement.magnitude > 0.1f) // Prevents the player from rotating when not moving
+           
+            if (movement.magnitude > 0.1f) 
             {
-                // Calculate the target rotation based on movement direction
+                
                 Quaternion targetRotation = Quaternion.LookRotation(movement);
 
-                // Only rotate towards the target if the movement input exceeds the threshold
+                
                 if (Mathf.Abs(movementInput.y) > rotationThreshold)
                 {
-                    // Rotate forward
+                    
                     transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * _rotationSpeed);
                 }
                 else if (Mathf.Abs(movementInput.x) > rotationThreshold)
                 {
-                    // Optionally, rotate when moving left/right (with a slight threshold to prevent minor input causing spin)
+                    
                     Quaternion horizontalRotation = Quaternion.LookRotation(movement);
                     transform.rotation = Quaternion.Slerp(transform.rotation, horizontalRotation, Time.deltaTime * _rotationSpeed);
                 }
