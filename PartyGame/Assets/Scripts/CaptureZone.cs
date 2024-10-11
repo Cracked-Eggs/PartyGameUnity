@@ -1,37 +1,42 @@
+using System.Collections;
+using Photon.Pun;
+using Photon.Pun.UtilityScripts;
 using UnityEngine;
-using TMPro; // Import TextMesh Pro namespace
 
 public class CaptureZone : MonoBehaviour
 {
-    public float timeInZone = 0f; // The time the player has stayed in the zone
-    private bool isPlayerInZone = false;
+    bool isPlayerInZone = false;
+    Coroutine scoreCoroutine;
 
-    public TextMeshProUGUI timeText; // Reference to the TextMeshPro text
-
-    private void OnTriggerEnter(Collider other)
+    void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
             isPlayerInZone = true;
+            scoreCoroutine = StartCoroutine(AddScoreEverySecond());
         }
     }
 
-    private void OnTriggerExit(Collider other)
+    void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("Player"))
         {
             isPlayerInZone = false;
+            // Stop the Coroutine when the player exits the zone
+            if (scoreCoroutine != null)
+            {
+                StopCoroutine(scoreCoroutine);
+                scoreCoroutine = null;
+            }
         }
     }
 
-    private void Update()
+    IEnumerator AddScoreEverySecond()
     {
-        // If the player is in the zone, accumulate time
-        if (isPlayerInZone)
+        while (isPlayerInZone)
         {
-            timeInZone += Time.deltaTime;
-            // Update TextMeshPro text with rounded time
-            timeText.text = "Time in Zone: " + Mathf.RoundToInt(timeInZone).ToString();
+            PhotonNetwork.LocalPlayer.AddScore(1);
+            yield return new WaitForSeconds(1f); // Wait for 1 second
         }
     }
 }

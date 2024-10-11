@@ -16,6 +16,7 @@ public class Lobby : MonoBehaviourPunCallbacks
     public Button createRoomButton;
     public Transform roomListParent;
     public GameObject roomListItemPrefab;
+    public Timer gameTimer;
 
     List<RoomInfo> cachedRoomList = new List<RoomInfo>();
     string roomToCreateName = "";

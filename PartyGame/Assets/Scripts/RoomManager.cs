@@ -55,4 +55,14 @@ public class RoomManager : MonoBehaviourPunCallbacks
         nameUI.SetActive(true);
         connectingUI.SetActive(false);
     }
+
+    public override void OnPlayerEnteredRoom(Photon.Realtime.Player newPlayer)
+    {
+        base.OnPlayerEnteredRoom(newPlayer);
+
+        if (PhotonNetwork.CurrentRoom.PlayerCount == 1)
+        {
+            Debug.Log("All 4 players have joined. Starting the game!");
+        }
+    }
 }
