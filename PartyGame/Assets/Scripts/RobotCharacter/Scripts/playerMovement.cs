@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -22,15 +23,32 @@ public class playerMovement : MonoBehaviour
     [SerializeField] public float customGravity = -9.81f;
     [SerializeField] public float maxFallSpeed = -20f;
     [SerializeField] public bool _isGrounded = false;
+    [SerializeField] private Transform cameraTransform; 
+    [SerializeField] private float sensitivityX = 10f; 
+    [SerializeField] private float sensitivityY = 10f;  
+    [SerializeField] private float minYAngle = -60f;  
+    [SerializeField] private float maxYAngle = 60f;    
+    [SerializeField] private float cameraDistance = 5f; 
+    [SerializeField] private float rotationSmoothSpeed = 0.1f;
+    [SerializeField] public float _rotationSpeed = 5f;
+    [SerializeField] public float rotationThreshold = 1f;
+
+    private Vector2 lookInput;                          
+    private Vector3 currentRotation;                   
+    private Vector3 rotationSmoothVelocity;
+    private float yRot = 0f; // Added
+    private float xRot = 0f; // Added
 
 
     private bool customGravityActive = true;
     public GameObject head, torso, r_Leg, l_Leg, r_Arm, l_Arm, parent;
-    private bool isDetached = false;
+    public bool isDetached = false;
     private int partsReattachedCount = 0;
     private int totalParts = 6;
+    private Vector3 referencePosition;
 
-
+    public bool _isL_ArmDetached = false;
+    public bool _isR_ArmDetached = false;
 
 
     private Dictionary<GameObject, Vector3> originalPositions = new Dictionary<GameObject, Vector3>();
@@ -65,6 +83,8 @@ public class playerMovement : MonoBehaviour
 
     private void Start()
     {
+        transform.rotation = Quaternion.Euler(0, 0, 0);
+
         playerCollider.enabled = false;
         head = GameObject.FindGameObjectWithTag("Head");
         torso = GameObject.FindGameObjectWithTag("Torso");
@@ -130,6 +150,11 @@ public class playerMovement : MonoBehaviour
         inputSystem.Player.ShootRightArm.Enable();
         inputSystem.Player.ShootLeftArm.performed += ShootLeftArm;
         inputSystem.Player.ShootLeftArm.Enable();
+        inputSystem.Player.ReattachLeftArm.performed += ReattachLeftArm;
+        inputSystem.Player.ReattachLeftArm.Enable();
+        inputSystem.Player.ReattachRightArm.performed += ReattachRightArm;
+        inputSystem.Player.ReattachRightArm.Enable();
+        ;
     }
 
     private void OnDisable()
@@ -145,12 +170,35 @@ public class playerMovement : MonoBehaviour
         inputSystem.Player.DetachLeftLeg.Disable();
         inputSystem.Player.DetachRightArm.Disable();
         inputSystem.Player.DetachLeftArm.Disable();
+        inputSystem.Player.ReattachLeftArm.Disable();
+        inputSystem.Player.ReattachRightArm.Disable();
+ 
     }
 
     private void OnJump(InputAction.CallbackContext context)
     {
         Jump();
     }
+   
+
+    private void LookAround()
+    {
+        // This method can be simplified or modified based on your needs.
+        // If you still want to control camera movement, you can adjust it here
+        Vector2 lookInput = _lookAction.ReadValue<Vector2>();
+        float mouseX = lookInput.x * sensitivityX * Time.deltaTime;  // Use Time.deltaTime for smooth movement
+        float mouseY = lookInput.y * sensitivityY * Time.deltaTime;
+
+        // Adjust the camera rotation based on mouse input
+        yRot += mouseX; // Horizontal rotation
+        xRot -= mouseY; // Vertical rotation
+        xRot = Mathf.Clamp(xRot, minYAngle, maxYAngle); // Clamp vertical rotation
+
+        // Apply rotation to the camera
+        cameraTransform.localRotation = Quaternion.Euler(xRot, yRot, 0f);
+    }
+
+
 
     private void Jump()
     {
@@ -167,14 +215,15 @@ public class playerMovement : MonoBehaviour
     {
         if (!isDetached)
         {
-            //DetachPart(head);
+            referencePosition = transform.position;
+            DetachPart(head);
             DetachPart(torso);
             DetachPart(r_Leg);
             DetachPart(l_Leg);
             DetachPart(r_Arm);
             DetachPart(l_Arm);
-            //playerCollider.enabled = true;
-            //_rb.constraints = RigidbodyConstraints.FreezeAll;
+            playerCollider.enabled = true;
+            _rb.constraints = RigidbodyConstraints.FreezeAll;
 
             isDetached = true;
             customGravityActive = false;
@@ -196,34 +245,35 @@ public class playerMovement : MonoBehaviour
 
             isDetached = false;
             _rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            playerCollider.enabled = false;
 
         }
     }
 
     private void DetachPart(GameObject part)
     {
-        canRetach = true;
-
         if (part == null) return;
 
-        part.transform.SetParent(null);
+        canRetach = true;
 
+        // Store the world scale before detaching (used for the collider only)
+        Vector3 worldScale = part.transform.lossyScale;
+
+        // Detach part from parent without affecting its local transformation
+        part.transform.SetParent(null); // Keeps the world transformation
+
+        // Adjust only the collider, not the object's scale
         BoxCollider partCollider = part.GetComponent<BoxCollider>();
         if (partCollider != null)
         {
+            // Scale the collider's size and center based on world scale
+            //partCollider.size = Vector3.Scale(partCollider.size, worldScale);
+            //partCollider.center = Vector3.Scale(partCollider.center, worldScale);
 
-            ColliderData colliderData = new ColliderData(partCollider);
-
-            Debug.Log($"Before Detach - Original Size: {colliderData.size}, Original Center: {colliderData.center}");
-
-
-            partCollider.size = new Vector3(colliderData.size.x / 10, colliderData.size.y / 10, colliderData.size.z / 10);
-            partCollider.center = new Vector3(colliderData.center.x / 10, colliderData.center.y / 10, colliderData.center.z / 10);
-
-            Debug.Log($"After Detach - Modified Size: {partCollider.size}, Modified Center: {partCollider.center}");
+            Debug.Log($"After Detach - Collider Size: {partCollider.size}, Collider Center: {partCollider.center}");
         }
 
-
+        // SkinnedMeshRenderer baking
         SkinnedMeshRenderer skinnedMesh = part.GetComponent<SkinnedMeshRenderer>();
         if (skinnedMesh != null)
         {
@@ -236,57 +286,46 @@ public class playerMovement : MonoBehaviour
             Destroy(skinnedMesh);
         }
 
+        // Add Rigidbody for physics interaction
         Rigidbody rb = part.AddComponent<Rigidbody>();
         rb.mass = 1f;
-        part.transform.localScale = originalScales[part];
+
+        // No need to modify part's localScale
     }
 
     private void ReattachPart(GameObject part)
     {
         if (part == null) return;
 
-        
-
-
+        // Clean up baked MeshRenderer and MeshFilter
         MeshRenderer meshRenderer = part.GetComponent<MeshRenderer>();
-        if (meshRenderer != null)
-        {
-            Destroy(meshRenderer);
-        }
+        if (meshRenderer != null) Destroy(meshRenderer);
 
         MeshFilter meshFilter = part.GetComponent<MeshFilter>();
-        if (meshFilter != null)
-        {
-            Destroy(meshFilter);
-        }
+        if (meshFilter != null) Destroy(meshFilter);
 
-
+        // Restore SkinnedMeshRenderer
         SkinnedMeshRenderer skinnedMesh = part.AddComponent<SkinnedMeshRenderer>();
         skinnedMesh.bones = originalBones[part];
         skinnedMesh.rootBone = originalRootBones[part];
         skinnedMesh.sharedMesh = originalMeshes[part];
 
-
         BoxCollider partCollider = part.GetComponent<BoxCollider>();
         if (partCollider != null)
         {
+            // Restore collider to its original size and center
             ColliderData originalColliderData = originalCollidersData[part];
             partCollider.size = originalColliderData.size;
             partCollider.center = originalColliderData.center;
         }
 
-
-        part.transform.parent = parent.transform;
-
-
+        // Reattach part to the parent without modifying scale
+        part.transform.SetParent(parent.transform);
         part.transform.localPosition = originalPositions[part];
         part.transform.localRotation = originalRotations[part];
-        part.transform.localScale = originalScales[part];
-
-
         partsReattachedCount++;
 
-
+        // Handle completion of reattachment
         if (partsReattachedCount >= totalParts)
         {
             if (playerCollider != null)
@@ -297,8 +336,6 @@ public class playerMovement : MonoBehaviour
         }
     }
 
-
-    
 
     private void DetachHead(InputAction.CallbackContext context)
     {
@@ -333,29 +370,63 @@ public class playerMovement : MonoBehaviour
 
     private void ShootRightArm(InputAction.CallbackContext context)
     {
-        if (!isDetached)
+        if (!_isR_ArmDetached)
         {
             DetachPart(r_Arm);  // Detach the right arm
             Rigidbody rb = r_Arm.GetComponent<Rigidbody>();
             if (rb != null)
             {
-                rb.AddForce(transform.forward * 2000f);  // Adjust force as needed
+                rb.AddForce(transform.forward * 5000f);  // Adjust force as needed
             }
+            _isR_ArmDetached = true;
         }
     }
 
     private void ShootLeftArm(InputAction.CallbackContext context)
     {
-        if (!isDetached)
+        if (!_isL_ArmDetached)
         {
             DetachPart(l_Arm);
             Rigidbody rb = l_Arm.GetComponent<Rigidbody>();
             if (rb != null)
             {
-                rb.AddForce(transform.forward * 2000f);
+                rb.AddForce(transform.forward * 5000f);
             }
+            _isL_ArmDetached = true;
+            
         }
     }
+
+    private void ReattachRightArm(InputAction.CallbackContext context)
+    {
+        if (_isR_ArmDetached)
+        {
+            
+            StartCoroutine(ShakeAndReattach(r_Arm));
+           
+
+            canRetach = false;
+            _isR_ArmDetached = false;
+
+
+        }
+
+    }
+    private void ReattachLeftArm(InputAction.CallbackContext context)
+    {
+        
+        if (_isL_ArmDetached)
+        {
+            Debug.Log("com");
+            StartCoroutine(ShakeAndReattach(l_Arm));
+            canRetach = false;
+
+            _isL_ArmDetached = false;
+        }
+
+    }
+
+
 
     public void SetGrounded(bool grounded)
     {
@@ -383,19 +454,57 @@ public class playerMovement : MonoBehaviour
         part.transform.localPosition = originalPosition;
         part.transform.localRotation = originalRotation;
 
-        // Reparent to the parent object
        
     }
 
-    private void FixedUpdate()
+   
+
+    private void Update()
     {
         if (_moveAction != null)
         {
             Vector2 movementInput = _moveAction.ReadValue<Vector2>();
-            Vector3 movement = new Vector3(movementInput.x, 0, movementInput.y).normalized * _speed;
-            movement.y = _rb.velocity.y;
-            _rb.velocity = movement;
+
+            // Convert movement input to a direction based on the player's current orientation
+            Vector3 forward = transform.forward; // Forward direction in world space
+            Vector3 right = transform.right;     // Right direction in world space
+
+            // Create movement vector based on input
+            Vector3 movement = (forward * movementInput.y + right * movementInput.x).normalized * _speed;
+
+            // Apply the desired velocity with some momentum
+            Vector3 targetVelocity = new Vector3(movement.x, _rb.velocity.y, movement.z); // Maintain vertical velocity
+            _rb.velocity = Vector3.Lerp(_rb.velocity, targetVelocity, 0.1f); // Smooth velocity application
+
+            
+
+            // Rotate the player to face the direction of movement
+            if (movement.magnitude > 0.1f) // Prevents the player from rotating when not moving
+            {
+                // Calculate the target rotation based on movement direction
+                Quaternion targetRotation = Quaternion.LookRotation(movement);
+
+                // Only rotate towards the target if the movement input exceeds the threshold
+                if (Mathf.Abs(movementInput.y) > rotationThreshold)
+                {
+                    // Rotate forward
+                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * _rotationSpeed);
+                }
+                else if (Mathf.Abs(movementInput.x) > rotationThreshold)
+                {
+                    // Optionally, rotate when moving left/right (with a slight threshold to prevent minor input causing spin)
+                    Quaternion horizontalRotation = Quaternion.LookRotation(movement);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, horizontalRotation, Time.deltaTime * _rotationSpeed);
+                }
+            }
         }
+
+
+
+
+
+
+        //LookAround();
 
         if (customGravityActive)
         {
@@ -409,22 +518,7 @@ public class playerMovement : MonoBehaviour
             _rb.AddForce(Vector3.up * customGravity, ForceMode.Acceleration);
         }
 
-        if (_rb.velocity.y <= 0)
-        {
-
-            RaycastHit hit;
-            if (Physics.Raycast(transform.position, Vector3.down, out hit, 1f))
-            {
-                SetGrounded(true);
-            }
-            else
-            {
-                SetGrounded(false);
-            }
-        }
-        else
-        {
-            SetGrounded(false);
-        }
+        
     }
+
 }

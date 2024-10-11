@@ -166,6 +166,24 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "ReattachRightArm",
+                    "type": "Button",
+                    "id": "b1a97778-3891-4681-b174-5a682f93054e",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ReattachLeftArm",
+                    "type": "Button",
+                    "id": "a0c49395-c096-450c-a170-60444be12495",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -633,23 +651,45 @@
                 },
                 {
                     "name": "",
-                    "id": "482eb2ef-a578-4de2-89c8-b21cdeafbce1",
-                    "path": "<Mouse>/leftButton",
+                    "id": "7d26f286-979d-4fdb-b3db-d9b6d75fa0fc",
+                    "path": "<Gamepad>/rightTrigger",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": ";Gamepad",
                     "action": "ShootRightArm",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "6f3fe74e-3559-498a-a8a1-8ecec164c2b4",
-                    "path": "<Mouse>/rightButton",
+                    "id": "c9d80951-a07f-41ab-9e58-ad2ac9406bac",
+                    "path": "<Gamepad>/leftTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "ShootLeftArm",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b4ec6448-82e4-46ec-86ba-7908b6b97d6d",
+                    "path": "<Gamepad>/rightShoulder",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ShootLeftArm",
+                    "action": "ReattachRightArm",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "43888e87-46ca-4a48-a8ad-e4f0e1947ea8",
+                    "path": "<Gamepad>/leftShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ReattachLeftArm",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

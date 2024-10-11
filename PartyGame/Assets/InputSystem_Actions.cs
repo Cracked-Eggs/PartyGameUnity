@@ -188,6 +188,24 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ReattachRightArm"",
+                    ""type"": ""Button"",
+                    ""id"": ""b1a97778-3891-4681-b174-5a682f93054e"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ReattachLeftArm"",
+                    ""type"": ""Button"",
+                    ""id"": ""a0c49395-c096-450c-a170-60444be12495"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -655,23 +673,45 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""482eb2ef-a578-4de2-89c8-b21cdeafbce1"",
-                    ""path"": ""<Mouse>/leftButton"",
+                    ""id"": ""7d26f286-979d-4fdb-b3db-d9b6d75fa0fc"",
+                    ""path"": ""<Gamepad>/rightTrigger"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": "";Gamepad"",
                     ""action"": ""ShootRightArm"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
-                    ""id"": ""6f3fe74e-3559-498a-a8a1-8ecec164c2b4"",
-                    ""path"": ""<Mouse>/rightButton"",
+                    ""id"": ""c9d80951-a07f-41ab-9e58-ad2ac9406bac"",
+                    ""path"": ""<Gamepad>/leftTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""ShootLeftArm"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b4ec6448-82e4-46ec-86ba-7908b6b97d6d"",
+                    ""path"": ""<Gamepad>/rightShoulder"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""ShootLeftArm"",
+                    ""action"": ""ReattachRightArm"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""43888e87-46ca-4a48-a8ad-e4f0e1947ea8"",
+                    ""path"": ""<Gamepad>/leftShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ReattachLeftArm"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1277,6 +1317,8 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_DetachLeftArm = m_Player.FindAction("DetachLeftArm", throwIfNotFound: true);
         m_Player_ShootRightArm = m_Player.FindAction("ShootRightArm", throwIfNotFound: true);
         m_Player_ShootLeftArm = m_Player.FindAction("ShootLeftArm", throwIfNotFound: true);
+        m_Player_ReattachRightArm = m_Player.FindAction("ReattachRightArm", throwIfNotFound: true);
+        m_Player_ReattachLeftArm = m_Player.FindAction("ReattachLeftArm", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1374,6 +1416,8 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_DetachLeftArm;
     private readonly InputAction m_Player_ShootRightArm;
     private readonly InputAction m_Player_ShootLeftArm;
+    private readonly InputAction m_Player_ReattachRightArm;
+    private readonly InputAction m_Player_ReattachLeftArm;
     public struct PlayerActions
     {
         private @InputSystem_Actions m_Wrapper;
@@ -1396,6 +1440,8 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         public InputAction @DetachLeftArm => m_Wrapper.m_Player_DetachLeftArm;
         public InputAction @ShootRightArm => m_Wrapper.m_Player_ShootRightArm;
         public InputAction @ShootLeftArm => m_Wrapper.m_Player_ShootLeftArm;
+        public InputAction @ReattachRightArm => m_Wrapper.m_Player_ReattachRightArm;
+        public InputAction @ReattachLeftArm => m_Wrapper.m_Player_ReattachLeftArm;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1459,6 +1505,12 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @ShootLeftArm.started += instance.OnShootLeftArm;
             @ShootLeftArm.performed += instance.OnShootLeftArm;
             @ShootLeftArm.canceled += instance.OnShootLeftArm;
+            @ReattachRightArm.started += instance.OnReattachRightArm;
+            @ReattachRightArm.performed += instance.OnReattachRightArm;
+            @ReattachRightArm.canceled += instance.OnReattachRightArm;
+            @ReattachLeftArm.started += instance.OnReattachLeftArm;
+            @ReattachLeftArm.performed += instance.OnReattachLeftArm;
+            @ReattachLeftArm.canceled += instance.OnReattachLeftArm;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -1517,6 +1569,12 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @ShootLeftArm.started -= instance.OnShootLeftArm;
             @ShootLeftArm.performed -= instance.OnShootLeftArm;
             @ShootLeftArm.canceled -= instance.OnShootLeftArm;
+            @ReattachRightArm.started -= instance.OnReattachRightArm;
+            @ReattachRightArm.performed -= instance.OnReattachRightArm;
+            @ReattachRightArm.canceled -= instance.OnReattachRightArm;
+            @ReattachLeftArm.started -= instance.OnReattachLeftArm;
+            @ReattachLeftArm.performed -= instance.OnReattachLeftArm;
+            @ReattachLeftArm.canceled -= instance.OnReattachLeftArm;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -1717,6 +1775,8 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         void OnDetachLeftArm(InputAction.CallbackContext context);
         void OnShootRightArm(InputAction.CallbackContext context);
         void OnShootLeftArm(InputAction.CallbackContext context);
+        void OnReattachRightArm(InputAction.CallbackContext context);
+        void OnReattachLeftArm(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {
