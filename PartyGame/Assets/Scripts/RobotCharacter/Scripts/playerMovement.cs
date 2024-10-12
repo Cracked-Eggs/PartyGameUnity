@@ -1,43 +1,36 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using Photon.Pun;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class Attach : MonoBehaviour
+public class playerMovement : MonoBehaviour
 {
     private GroundCheck gc;
     private InputSystem_Actions inputSystem;
-    
+
+    private InputAction _moveAction;
+    private InputAction _lookAction;
+    private InputAction _jumpAction;
 
     private Rigidbody _rb;
     private Collider playerCollider;
 
     public bool canRetach;
 
+    [SerializeField] public float _speed;
+    [SerializeField] public float _jumpForce;
     [SerializeField] public float customGravity = -9.81f;
-
-    private Vector2 lookInput;                          
-    private Vector3 currentRotation;                   
-    private Vector3 rotationSmoothVelocity;
-    private float yRot = 0f; 
-    private float xRot = 0f; 
-    public float ogJumpForce;
+    [SerializeField] public float maxFallSpeed = -20f;
+    [SerializeField] public bool _isGrounded = false;
 
 
     private bool customGravityActive = true;
     public GameObject head, torso, r_Leg, l_Leg, r_Arm, l_Arm, parent;
-    public bool isDetached = false;
+    private bool isDetached = false;
     private int partsReattachedCount = 0;
     private int totalParts = 6;
-    private Vector3 referencePosition;
 
-    public bool _isL_ArmDetached = false;
-    public bool _isR_ArmDetached = false;
-    public bool _isL_LegDetached = false;
-    public bool _isR_LegDetached = false;
-    public bool isLocalInstance = false;
+
 
 
     private Dictionary<GameObject, Vector3> originalPositions = new Dictionary<GameObject, Vector3>();
@@ -72,8 +65,6 @@ public class Attach : MonoBehaviour
 
     private void Start()
     {
-        transform.rotation = Quaternion.Euler(0, 0, 0);
-
         playerCollider.enabled = false;
         head = GameObject.FindGameObjectWithTag("Head");
         torso = GameObject.FindGameObjectWithTag("Torso");
@@ -82,6 +73,7 @@ public class Attach : MonoBehaviour
         r_Arm = GameObject.FindGameObjectWithTag("R_Arm");
         l_Arm = GameObject.FindGameObjectWithTag("L_Arm");
         parent = GameObject.FindGameObjectWithTag("Parent");
+
 
         StoreOriginalTransforms(head);
         StoreOriginalTransforms(torso);
@@ -109,6 +101,13 @@ public class Attach : MonoBehaviour
 
     private void OnEnable()
     {
+        _moveAction = inputSystem.Player.Move;
+        _moveAction.Enable();
+        _lookAction = inputSystem.Player.Look;
+        _lookAction.Enable();
+        _jumpAction = inputSystem.Player.Jump;
+        _jumpAction.performed += OnJump;
+        _jumpAction.Enable();
 
         inputSystem.Player.DetachHead.performed += DetachHead;
 
@@ -131,15 +130,13 @@ public class Attach : MonoBehaviour
         inputSystem.Player.ShootRightArm.Enable();
         inputSystem.Player.ShootLeftArm.performed += ShootLeftArm;
         inputSystem.Player.ShootLeftArm.Enable();
-        inputSystem.Player.ReattachLeftArm.performed += ReattachLeftArm;
-        inputSystem.Player.ReattachLeftArm.Enable();
-        inputSystem.Player.ReattachRightArm.performed += ReattachRightArm;
-        inputSystem.Player.ReattachRightArm.Enable();
-        ;
     }
 
     private void OnDisable()
     {
+        _moveAction.Disable();
+        _lookAction.Disable();
+        _jumpAction.Disable();
         inputSystem.Player.Detach.Disable();
         inputSystem.Player.Reattach.Disable();
         inputSystem.Player.DetachHead.Disable();
@@ -148,24 +145,36 @@ public class Attach : MonoBehaviour
         inputSystem.Player.DetachLeftLeg.Disable();
         inputSystem.Player.DetachRightArm.Disable();
         inputSystem.Player.DetachLeftArm.Disable();
-        inputSystem.Player.ReattachLeftArm.Disable();
-        inputSystem.Player.ReattachRightArm.Disable();
- 
+    }
+
+    private void OnJump(InputAction.CallbackContext context)
+    {
+        Jump();
+    }
+
+    private void Jump()
+    {
+        Debug.Log("jumping");
+        if (_isGrounded)
+        {
+            Vector3 jumpForce = Vector3.up * _jumpForce;
+            _rb.AddForce(jumpForce);
+            SetGrounded(false);
+        }
     }
 
     private void OnDetach(InputAction.CallbackContext context)
     {
         if (!isDetached)
         {
-            referencePosition = transform.position;
-            DetachPart(head);
+            //DetachPart(head);
             DetachPart(torso);
             DetachPart(r_Leg);
             DetachPart(l_Leg);
             DetachPart(r_Arm);
             DetachPart(l_Arm);
-            playerCollider.enabled = true;
-            _rb.constraints = RigidbodyConstraints.FreezeAll;
+            //playerCollider.enabled = true;
+            //_rb.constraints = RigidbodyConstraints.FreezeAll;
 
             isDetached = true;
             customGravityActive = false;
@@ -187,39 +196,34 @@ public class Attach : MonoBehaviour
 
             isDetached = false;
             _rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
-            playerCollider.enabled = false;
-            _isR_LegDetached = false;
-            _isL_LegDetached = false;
 
         }
     }
 
     private void DetachPart(GameObject part)
     {
-        if (part == null) return;
-        PhotonView photonView = part.GetComponent<PhotonView>();
-        if (photonView != null && !photonView.IsMine) return; 
-
         canRetach = true;
 
-        // Store the world scale before detaching (used for the collider only)
-        Vector3 worldScale = part.transform.lossyScale;
+        if (part == null) return;
 
-        // Detach part from parent without affecting its local transformation
-        part.transform.SetParent(null); // Keeps the world transformation
+        part.transform.SetParent(null);
 
-        // Adjust only the collider, not the object's scale
         BoxCollider partCollider = part.GetComponent<BoxCollider>();
         if (partCollider != null)
         {
-            // Scale the collider's size and center based on world scale
-            //partCollider.size = Vector3.Scale(partCollider.size, worldScale);
-            //partCollider.center = Vector3.Scale(partCollider.center, worldScale);
 
-            Debug.Log($"After Detach - Collider Size: {partCollider.size}, Collider Center: {partCollider.center}");
+            ColliderData colliderData = new ColliderData(partCollider);
+
+            Debug.Log($"Before Detach - Original Size: {colliderData.size}, Original Center: {colliderData.center}");
+
+
+            partCollider.size = new Vector3(colliderData.size.x / 10, colliderData.size.y / 10, colliderData.size.z / 10);
+            partCollider.center = new Vector3(colliderData.center.x / 10, colliderData.center.y / 10, colliderData.center.z / 10);
+
+            Debug.Log($"After Detach - Modified Size: {partCollider.size}, Modified Center: {partCollider.center}");
         }
 
-        // SkinnedMeshRenderer baking
+
         SkinnedMeshRenderer skinnedMesh = part.GetComponent<SkinnedMeshRenderer>();
         if (skinnedMesh != null)
         {
@@ -232,47 +236,57 @@ public class Attach : MonoBehaviour
             Destroy(skinnedMesh);
         }
 
-        // Add Rigidbody for physics interaction
         Rigidbody rb = part.AddComponent<Rigidbody>();
         rb.mass = 1f;
-
-        // No need to modify part's localScale
+        part.transform.localScale = originalScales[part];
     }
 
     private void ReattachPart(GameObject part)
     {
         if (part == null) return;
-        PhotonView photonView = part.GetComponent<PhotonView>();
-        if (photonView != null && !photonView.IsMine) return; 
 
-       
+        
+
+
         MeshRenderer meshRenderer = part.GetComponent<MeshRenderer>();
-        if (meshRenderer != null) Destroy(meshRenderer);
+        if (meshRenderer != null)
+        {
+            Destroy(meshRenderer);
+        }
 
         MeshFilter meshFilter = part.GetComponent<MeshFilter>();
-        if (meshFilter != null) Destroy(meshFilter);
+        if (meshFilter != null)
+        {
+            Destroy(meshFilter);
+        }
+
 
         SkinnedMeshRenderer skinnedMesh = part.AddComponent<SkinnedMeshRenderer>();
         skinnedMesh.bones = originalBones[part];
         skinnedMesh.rootBone = originalRootBones[part];
         skinnedMesh.sharedMesh = originalMeshes[part];
 
+
         BoxCollider partCollider = part.GetComponent<BoxCollider>();
         if (partCollider != null)
         {
-           
             ColliderData originalColliderData = originalCollidersData[part];
             partCollider.size = originalColliderData.size;
             partCollider.center = originalColliderData.center;
         }
 
-        
-        part.transform.SetParent(parent.transform);
+
+        part.transform.parent = parent.transform;
+
+
         part.transform.localPosition = originalPositions[part];
         part.transform.localRotation = originalRotations[part];
+        part.transform.localScale = originalScales[part];
+
+
         partsReattachedCount++;
 
-      
+
         if (partsReattachedCount >= totalParts)
         {
             if (playerCollider != null)
@@ -283,6 +297,8 @@ public class Attach : MonoBehaviour
         }
     }
 
+
+    
 
     private void DetachHead(InputAction.CallbackContext context)
     {
@@ -298,13 +314,11 @@ public class Attach : MonoBehaviour
     private void DetachRightLeg(InputAction.CallbackContext context)
     {
         DetachPart(r_Leg);
-        _isR_LegDetached = true;
     }
 
     private void DetachLeftLeg(InputAction.CallbackContext context)
     {
         DetachPart(l_Leg);
-        _isL_LegDetached = true;
     }
 
     private void DetachRightArm(InputAction.CallbackContext context)
@@ -319,96 +333,98 @@ public class Attach : MonoBehaviour
 
     private void ShootRightArm(InputAction.CallbackContext context)
     {
-        if (!_isR_ArmDetached)
+        if (!isDetached)
         {
             DetachPart(r_Arm);  // Detach the right arm
             Rigidbody rb = r_Arm.GetComponent<Rigidbody>();
             if (rb != null)
             {
-                rb.AddForce(transform.forward * 5000f);  // Adjust force as needed
+                rb.AddForce(transform.forward * 2000f);  // Adjust force as needed
             }
-            _isR_ArmDetached = true;
         }
     }
 
     private void ShootLeftArm(InputAction.CallbackContext context)
     {
-        if (!_isL_ArmDetached)
+        if (!isDetached)
         {
             DetachPart(l_Arm);
             Rigidbody rb = l_Arm.GetComponent<Rigidbody>();
             if (rb != null)
             {
-                rb.AddForce(transform.forward * 5000f);
+                rb.AddForce(transform.forward * 2000f);
             }
-            _isL_ArmDetached = true;
-            
         }
     }
 
-    private void ReattachRightArm(InputAction.CallbackContext context)
+    public void SetGrounded(bool grounded)
     {
-        if (_isR_ArmDetached)
-        {
-            
-            StartCoroutine(ShakeAndReattach(r_Arm));
-           
-
-            canRetach = false;
-            _isR_ArmDetached = false;
-
-
-        }
-
+        _isGrounded = grounded;
     }
-    private void ReattachLeftArm(InputAction.CallbackContext context)
-    {
-        
-        if (_isL_ArmDetached)
-        {
-            Debug.Log("com");
-            StartCoroutine(ShakeAndReattach(l_Arm));
-            canRetach = false;
-
-            _isL_ArmDetached = false;
-        }
-
-    }
-
-
-
     private IEnumerator ShakeAndReattach(GameObject part)
     {
-        
-        Rigidbody partRb = part.GetComponent<Rigidbody>();
-        if (partRb != null)
-        {
-            Destroy(partRb); 
-        }
-
-       
         part.transform.SetParent(parent.transform);
-
+        Destroy(part.GetComponent<Rigidbody>());
         Vector3 originalPosition = originalPositions[part];
         Quaternion originalRotation = originalRotations[part];
-        Vector3 shakeOffset = new Vector3(0.1f, 0, 0);  
-        float reattachSpeed = 5f;  
-        float rotationSpeed = 5f;  
-        float reattachDistanceThreshold = 0.1f;
+        Vector3 shakeOffset = new Vector3(0.1f, 0, 0);
+        float shakeDuration = 0.3f;
+        float shakeFrequency = 10f;
 
-        while (Vector3.Distance(part.transform.localPosition, originalPosition) > reattachDistanceThreshold)
+        // Shaking effect
+        for (float t = 0; t < shakeDuration; t += Time.deltaTime)
         {
-           
-            part.transform.localPosition = Vector3.Lerp(part.transform.localPosition, originalPosition, reattachSpeed * Time.deltaTime);
-
-            
-            part.transform.localRotation = Quaternion.Slerp(part.transform.localRotation, originalRotation, rotationSpeed * Time.deltaTime);
-
-            yield return null;  
+            float x = Mathf.Sin(t * shakeFrequency) * shakeOffset.x;
+            part.transform.localPosition = originalPosition + new Vector3(x, 0, 0);
+            yield return null;
         }
 
-       
+        // Directly set back to original position and rotation after shaking
         part.transform.localPosition = originalPosition;
         part.transform.localRotation = originalRotation;
+
+        // Reparent to the parent object
+       
+    }
+
+    private void FixedUpdate()
+    {
+        if (_moveAction != null)
+        {
+            Vector2 movementInput = _moveAction.ReadValue<Vector2>();
+            Vector3 movement = new Vector3(movementInput.x, 0, movementInput.y).normalized * _speed;
+            movement.y = _rb.velocity.y;
+            _rb.velocity = movement;
+        }
+
+        if (customGravityActive)
+        {
+            if (_rb.velocity.y > maxFallSpeed)
+            {
+                _rb.AddForce(Vector3.up * customGravity, ForceMode.Acceleration);
+            }
+        }
+        else
+        {
+            _rb.AddForce(Vector3.up * customGravity, ForceMode.Acceleration);
+        }
+
+        if (_rb.velocity.y <= 0)
+        {
+
+            RaycastHit hit;
+            if (Physics.Raycast(transform.position, Vector3.down, out hit, 1f))
+            {
+                SetGrounded(true);
+            }
+            else
+            {
+                SetGrounded(false);
+            }
+        }
+        else
+        {
+            SetGrounded(false);
+        }
     }
 }
